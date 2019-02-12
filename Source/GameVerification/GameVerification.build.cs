@@ -20,8 +20,9 @@ namespace UnrealBuildTool.Rules
 			PrivateDependencyModuleNames.AddRange(new string[] {
 					"CoreUObject",
 					"Engine",
-					"Projects"
-				});
+					"Projects",
+                    "UnrealEd"
+                });
 
 			string BaseDirectory = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "ThirdParty", "GameVerificationLibrary"));
 

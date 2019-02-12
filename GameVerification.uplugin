@@ -24,17 +24,6 @@
 				"Linux",
 				"Mac"
 			]
-		},
-		{
-			"Name": "GameVerification",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms" :
-			[
-				"Win64",
-				"Linux",
-				"Mac"
-			]
 		}
 	]
 }
