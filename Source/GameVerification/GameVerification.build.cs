@@ -7,6 +7,8 @@ namespace UnrealBuildTool.Rules
 	{
 		public GameVerification(ReadOnlyTargetRules Target) : base(Target)
 		{
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
 			PrivateIncludePaths.AddRange(new string[] {
 					"GameVerification/Private",
 				});
