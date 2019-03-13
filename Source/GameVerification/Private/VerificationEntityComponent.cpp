@@ -44,6 +44,22 @@ void UVerificationEntityComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(UVerificationEntityComponent, m_EntityID);
 }
 
+void UVerificationEntityComponent::UpdateProperty(const FString& Name, bool Value)
+{
+	bool* Cached = CachedValues.Find(Name);
+	if (Cached)
+	{
+		if (*Cached == Value) return;
+		*Cached = Value;
+	}
+	else
+	{
+		CachedValues.Add(Name, Value);
+	}
+
+	m_PluginInterface->PropertyChanged(m_SessionID, m_EntityID, Name, Value);
+}
+
 void UVerificationEntityComponent::OnRep_EntityID()
 {
 	if (bReplicates || !GetOwner()->HasAuthority())

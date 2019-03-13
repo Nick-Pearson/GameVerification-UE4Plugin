@@ -57,6 +57,8 @@ public:
 
 	virtual void EntityDestroyed(GameVerification::SessionID session, const FVerificationEntityID& id) = 0;
 
+	virtual void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value) = 0;
+
 	virtual GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) = 0;
 
 	static inline IGameVerification& Get()

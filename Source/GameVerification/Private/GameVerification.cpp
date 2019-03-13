@@ -1,6 +1,8 @@
 #include "GameVerification.h"
 
 #include "api.h"
+#include "verificationclient.h"
+#include "model/verificationmodel.h"
 
 using namespace GameVerification;
 
@@ -55,11 +57,7 @@ void FGameVerification::StartupModule()
 
 	// this is disgusting ew ew ew
 	const FString modelPath = FPaths::ProjectSavedDir() / "Verification" / "model.ven";
-	char* copy = new char[modelPath.Len() + 1];
-	FMemory::Memzero(copy, modelPath.Len() + 1);
-	FMemory::Memcpy(copy, TCHAR_TO_ANSI(*modelPath), modelPath.Len() + 1);
-
-	config->modelFile = copy;
+	config->modelFile = TCHAR_TO_ANSI(*modelPath);
 }
 
 void FGameVerification::ShutdownModule()
@@ -153,6 +151,22 @@ void FGameVerification::EntityDestroyed(GameVerification::SessionID session, con
 	client->sendEvent(&e, sizeof(e));
 }
 
+void FGameVerification::PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value)
+{
+	if (!client) return;
+
+	SwitchToSession(session);
+
+	API::PropertyChangedEvent e{ id.GetValue(), GetPropertyIDFromString(id.EntityType, prop), value };
+
+	if (e.propertyID == INVALID_PROPERTY)
+	{
+		return;
+	}
+
+	client->sendEvent(&e, sizeof(e));
+}
+
 SessionID FGameVerification::GetSessionID(const UGameInstance* GameInstance)
 {
 	SessionID id = INVALID_SESSION;
@@ -181,6 +195,27 @@ void FGameVerification::SwitchToSession(GameVerification::SessionID NewSession)
 	API::SessionEvent e{ NewSession, EventType::SET_ACTIVE_SESSION };
 	client->sendEvent(&e, sizeof(e));
 	CurrentSession = NewSession;
+}
+
+PropertyID FGameVerification::GetPropertyIDFromString(EntityType entity, const FString& propertyName)
+{
+	FPropertyCacheEntry* entry = PropertyNameCache.Find(entity);
+
+	if (!entry)
+	{
+		entry = &PropertyNameCache.Add(entity);
+	}
+
+	PropertyID* id = entry->Entries.Find(propertyName);
+
+	if(!id)
+	{
+		if (!client) return INVALID_PROPERTY;
+
+		id = &entry->Entries.Add(propertyName, client->GetModel()->getPropertyID(entity, TCHAR_TO_ANSI(*propertyName)));
+	}
+
+	return *id;
 }
 
 VerificationClient* FGameVerification::CreateClient()

@@ -22,6 +22,8 @@ public:
 	// Sets default values for this component's properties
 	UVerificationEntityComponent();
 
+	void UpdateProperty(const FString& Name, bool Value);
+
 protected:
 
 	void InitializeComponent() override;
@@ -43,5 +45,7 @@ private:
 	FVerificationEntityID m_EntityID;
 
 	GameVerification::SessionID m_SessionID;
+
+	TMap<FString, bool> CachedValues;
 
 };

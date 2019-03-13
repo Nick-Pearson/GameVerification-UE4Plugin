@@ -56,6 +56,8 @@ public:
 
 	void EntityDestroyed(GameVerification::SessionID session, const FVerificationEntityID& id) override;
 
+	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value) override;
+
 	GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) override;
 
 	void SendEvent(GameVerification::SessionID session, GameVerification::API::Event* eventPtr, size_t eventSize);
@@ -66,8 +68,16 @@ private:
 
 	void SwitchToSession(GameVerification::SessionID NewSession);
 
+	GameVerification::PropertyID GetPropertyIDFromString(GameVerification::EntityType entity, const FString& propertyName);
+
 	TMap<GameVerification::SessionID, FSessionData> SessionData;
 	TMap<UGameInstance*, GameVerification::SessionID> SessionIDMap;
+
+	struct FPropertyCacheEntry 
+	{
+		TMap<FString, GameVerification::PropertyID> Entries;
+	};
+	TMap<GameVerification::EntityType, FPropertyCacheEntry> PropertyNameCache;
 
 	GameVerification::VerificationClient* CreateClient();
 
