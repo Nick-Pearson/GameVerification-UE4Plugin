@@ -57,6 +57,8 @@ public:
 	void EntityDestroyed(GameVerification::SessionID session, const FVerificationEntityID& id) override;
 
 	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value) override;
+	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, int value) override;
+	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, const struct GameVerification::PropertyValue& value);
 
 	GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) override;
 

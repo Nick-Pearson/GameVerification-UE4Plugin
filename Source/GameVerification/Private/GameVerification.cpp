@@ -3,6 +3,7 @@
 #include "api.h"
 #include "verificationclient.h"
 #include "model/verificationmodel.h"
+#include "verificationtypes.h"
 
 using namespace GameVerification;
 
@@ -152,6 +153,16 @@ void FGameVerification::EntityDestroyed(GameVerification::SessionID session, con
 }
 
 void FGameVerification::PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value)
+{
+	PropertyChanged(session, id, prop, PropertyValue(value));
+}
+
+void FGameVerification::PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, int value)
+{
+	PropertyChanged(session, id, prop, PropertyValue(value));
+}
+
+void FGameVerification::PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, const PropertyValue& value)
 {
 	if (!client) return;
 

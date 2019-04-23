@@ -1,7 +1,8 @@
 #include "VerificationEntityComponent.h"
 #include "IGameVerification.h"
 #include "UnrealNetwork.h"
-#include "Engine/World.h"
+
+#include "Engine/ActorChannel.h"
 
 UVerificationEntityComponent::UVerificationEntityComponent()
 {
@@ -9,23 +10,37 @@ UVerificationEntityComponent::UVerificationEntityComponent()
 	bWantsInitializeComponent = true;
 }
 
+void UVerificationEntityComponent::OnRep_EntityData()
+{
+	if (EntityData)
+	{
+		EntityData->EntityType = EntityType;
+		EntityData->Initialise(bReplicates, GetWorld());
+
+		if (HasBegunPlay())
+			EntityData->OnBeginPlay();
+	}
+}
+
 void UVerificationEntityComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	m_PluginInterface = &IGameVerification::Get();
-
-	UGameInstance* GI = GetWorld()->GetGameInstance<UGameInstance>();
-	m_SessionID = m_PluginInterface->GetSessionID(GI);
+	if (!bReplicates || GetOwner()->HasAuthority())
+	{
+		EntityData = NewObject<UVerificationEntity>(GetOwner());
+		EntityData->EntityType = EntityType;
+		EntityData->Initialise(bReplicates, GetWorld());
+	}
 }
 
 void UVerificationEntityComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!bReplicates || GetOwner()->HasAuthority())
+	if (EntityData && (!bReplicates || GetOwner()->HasAuthority()))
 	{
-		m_EntityID = m_PluginInterface->EntitySpawned(m_SessionID, EntityType);
+		EntityData->OnBeginPlay();
 	}
 }
 
@@ -34,36 +49,22 @@ void UVerificationEntityComponent::EndPlay(const EEndPlayReason::Type EndPlayRea
 {
 	Super::EndPlay(EndPlayReason);
 
-	m_PluginInterface->EntityDestroyed(m_SessionID, m_EntityID);
+	if (EntityData) EntityData->OnEndPlay();
 }
 
 void UVerificationEntityComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UVerificationEntityComponent, m_EntityID);
+	DOREPLIFETIME(UVerificationEntityComponent, EntityData);
 }
 
-void UVerificationEntityComponent::UpdateProperty(const FString& Name, bool Value)
+bool UVerificationEntityComponent::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
-	bool* Cached = CachedValues.Find(Name);
-	if (Cached)
-	{
-		if (*Cached == Value) return;
-		*Cached = Value;
-	}
-	else
-	{
-		CachedValues.Add(Name, Value);
-	}
+	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 
-	m_PluginInterface->PropertyChanged(m_SessionID, m_EntityID, Name, Value);
-}
+	if (EntityData)
+		WroteSomething |= Channel->ReplicateSubobject(EntityData, *Bunch, *RepFlags);
 
-void UVerificationEntityComponent::OnRep_EntityID()
-{
-	if (bReplicates || !GetOwner()->HasAuthority())
-	{
-		 m_PluginInterface->EntitySpawned(m_SessionID, m_EntityID);
-	}
+	return WroteSomething;
 }

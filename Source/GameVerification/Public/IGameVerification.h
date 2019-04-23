@@ -38,6 +38,8 @@ public:
 
 		return id;
 	}
+
+	inline bool IsValid() const { return EntityType != INVALID_ENTITY; }
 };
 
 // Runtime module for performing game verification
@@ -58,6 +60,7 @@ public:
 	virtual void EntityDestroyed(GameVerification::SessionID session, const FVerificationEntityID& id) = 0;
 
 	virtual void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value) = 0;
+	virtual void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, int value) = 0;
 
 	virtual GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) = 0;
 
