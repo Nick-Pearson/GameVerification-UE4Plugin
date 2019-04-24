@@ -18,6 +18,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "VerificationEntity")
 	FString EntityType;
 
+public:
+
+	UFUNCTION(BlueprintCallable, Category = "VerificationEntity", meta = (DisplayName = "Update Property (bool)"))
+	void UpdatePropertyBool_BP(const FString& Name, bool Value);
+
+	UFUNCTION(BlueprintCallable, Category = "VerificationEntity", meta = (DisplayName = "Update Property (int)"))
+	void UpdatePropertyInt_BP(const FString& Name, int Value);
+
+	inline FVerificationEntityID GetEntityID() const { return m_EntityID; }
+
 #if VERIFICATION_ENABLED
 	void Initialise(bool doesReplicate, UWorld* WorldPtr);
 
@@ -26,10 +36,17 @@ public:
 
 	void UpdateProperty(const FString& Name, bool Value);
 	void UpdateProperty(const FString& Name, int Value);
+	void UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity);
 
 #else
+	FORCE_INLINE void Initialise(bool doesReplicate, UWorld* WorldPtr) {}
+
+	FORCE_INLINE void OnBeginPlay() {}
+	FORCE_INLINE void OnEndPlay() {}
+
 	FORCE_INLINE void UpdateProperty(const FString& Name, bool Value) {}
 	FORCE_INLINE void UpdateProperty(const FString& Name, int Value) {}
+	FORCE_INLINE void UpdateSubentity(const FString& Name, const FVerificationEntityID& subentity) {}
 #endif
 
 	bool IsSupportedForNetworking() const override
@@ -53,4 +70,5 @@ private:
 
 	TMap<FString, bool> CachedBoolValues;
 	TMap<FString, int> CachedIntValues;
+	TMap<FString, FVerificationEntityID> CachedSubentityValues;
 };

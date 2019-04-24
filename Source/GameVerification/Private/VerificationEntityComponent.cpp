@@ -10,6 +10,16 @@ UVerificationEntityComponent::UVerificationEntityComponent()
 	bWantsInitializeComponent = true;
 }
 
+void UVerificationEntityComponent::UpdatePropertyBool_BP(const FString& Name, bool Value)
+{
+	UpdateProperty(Name, Value);
+}
+
+void UVerificationEntityComponent::UpdatePropertyInt_BP(const FString& Name, int Value)
+{
+	UpdateProperty(Name, Value);
+}
+
 void UVerificationEntityComponent::OnRep_EntityData()
 {
 	if (EntityData)

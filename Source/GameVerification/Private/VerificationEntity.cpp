@@ -4,6 +4,17 @@
 #include "Engine/World.h"
 
 
+void UVerificationEntity::UpdatePropertyBool_BP(const FString& Name, bool Value)
+{
+	UpdateProperty(Name, Value);
+}
+
+void UVerificationEntity::UpdatePropertyInt_BP(const FString& Name, int Value)
+{
+	UpdateProperty(Name, Value);
+}
+
+#if VERIFICATION_ENABLED
 void UVerificationEntity::Initialise(bool doesReplicate, UWorld* WorldPtr)
 {
 	m_Replicates = doesReplicate;
@@ -59,6 +70,23 @@ void UVerificationEntity::UpdateProperty(const FString& Name, int Value)
 
 	m_PluginInterface->PropertyChanged(m_SessionID, m_EntityID, Name, Value);
 }
+
+void UVerificationEntity::UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity)
+{
+	FVerificationEntityID* Cached = CachedSubentityValues.Find(Name);
+	if (Cached)
+	{
+		if (*Cached == Subentity) return;
+		*Cached = Subentity;
+	}
+	else
+	{
+		CachedSubentityValues.Add(Name, Subentity);
+	}
+
+	m_PluginInterface->SubentityChanged(m_SessionID, m_EntityID, Name, Subentity);
+}
+#endif
 
 void UVerificationEntity::OnRep_EntityID()
 {

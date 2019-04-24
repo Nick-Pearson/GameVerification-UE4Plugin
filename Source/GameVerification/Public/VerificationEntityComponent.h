@@ -25,8 +25,15 @@ public:
 	// Sets default values for this component's properties
 	UVerificationEntityComponent();
 
+	UFUNCTION(BlueprintCallable, Category = "VerificationEntity", meta = (DisplayName = "Update Property (bool)"))
+	void UpdatePropertyBool_BP(const FString& Name, bool Value);
+
+	UFUNCTION(BlueprintCallable, Category = "VerificationEntity", meta = (DisplayName = "Update Property (int)"))
+	void UpdatePropertyInt_BP(const FString& Name, int Value);
+
 	FORCEINLINE void UpdateProperty(const FString& Name, bool Value) { if (EntityData) EntityData->UpdateProperty(Name, Value); }
 	FORCEINLINE void UpdateProperty(const FString& Name, int Value) { if (EntityData) EntityData->UpdateProperty(Name, Value); }
+	FORCEINLINE void UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity) { if (EntityData) EntityData->UpdateSubentity(Name, Subentity); }
 
 protected:
 

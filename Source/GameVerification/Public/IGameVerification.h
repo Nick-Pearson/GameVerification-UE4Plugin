@@ -30,6 +30,11 @@ public:
 		return *this;
 	}
 
+	bool operator==(const FVerificationEntityID& other) const
+	{
+		return EntityType == other.EntityType && Idx == other.Idx;
+	}
+
 	GameVerification::EntityID GetValue() const
 	{
 		GameVerification::EntityID id;
@@ -61,6 +66,8 @@ public:
 
 	virtual void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, bool value) = 0;
 	virtual void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, int value) = 0;
+
+	virtual void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) = 0;
 
 	virtual GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) = 0;
 

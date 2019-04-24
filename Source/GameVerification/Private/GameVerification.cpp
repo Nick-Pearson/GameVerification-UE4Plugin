@@ -178,6 +178,22 @@ void FGameVerification::PropertyChanged(GameVerification::SessionID session, con
 	client->sendEvent(&e, sizeof(e));
 }
 
+void FGameVerification::SubentityChanged(SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity)
+{
+	if (!client) return;
+
+	SwitchToSession(session);
+
+	API::SubentityEvent e{ thisEntity.GetValue(), GetPropertyIDFromString(thisEntity.EntityType, prop), otherEntity.GetValue() };
+
+	if (e.propertyID == INVALID_PROPERTY)
+	{
+		return;
+	}
+
+	client->sendEvent(&e, sizeof(e));
+}
+
 SessionID FGameVerification::GetSessionID(const UGameInstance* GameInstance)
 {
 	SessionID id = INVALID_SESSION;

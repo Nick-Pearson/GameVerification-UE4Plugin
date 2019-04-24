@@ -60,6 +60,8 @@ public:
 	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, int value) override;
 	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, const struct GameVerification::PropertyValue& value);
 
+	void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) override;
+
 	GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) override;
 
 	void SendEvent(GameVerification::SessionID session, GameVerification::API::Event* eventPtr, size_t eventSize);
