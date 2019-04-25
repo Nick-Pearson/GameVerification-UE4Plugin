@@ -8,6 +8,24 @@
 
 #include "VerificationEntity.generated.h"
 
+USTRUCT(BlueprintType)
+struct FVerificationEntityParams
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity")
+	FString EntityType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity")
+	bool SpawnBDIAgent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity", meta = (EditCondition = "SpawnBDIAgent"))
+	FString BDIAgentName;
+};
+
+
 UCLASS(BlueprintType)
 class GAMEVERIFICATION_API UVerificationEntity : public UObject
 {
@@ -15,8 +33,7 @@ class GAMEVERIFICATION_API UVerificationEntity : public UObject
 	
 public:
 
-	UPROPERTY(BlueprintReadWrite, Category = "VerificationEntity")
-	FString EntityType;
+	FVerificationEntityParams Params;
 
 public:
 
@@ -29,6 +46,7 @@ public:
 	inline FVerificationEntityID GetEntityID() const { return m_EntityID; }
 
 #if VERIFICATION_ENABLED
+
 	void Initialise(bool doesReplicate, UWorld* WorldPtr);
 
 	void OnBeginPlay();
@@ -39,6 +57,7 @@ public:
 	void UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity);
 
 #else
+
 	FORCE_INLINE void Initialise(bool doesReplicate, UWorld* WorldPtr) {}
 
 	FORCE_INLINE void OnBeginPlay() {}
@@ -47,6 +66,7 @@ public:
 	FORCE_INLINE void UpdateProperty(const FString& Name, bool Value) {}
 	FORCE_INLINE void UpdateProperty(const FString& Name, int Value) {}
 	FORCE_INLINE void UpdateSubentity(const FString& Name, const FVerificationEntityID& subentity) {}
+
 #endif
 
 	bool IsSupportedForNetworking() const override

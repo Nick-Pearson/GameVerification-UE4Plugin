@@ -15,10 +15,10 @@ class GAMEVERIFICATION_API UVerificationEntityComponent : public UActorComponent
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity")
-	FString EntityType;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity", meta = (ShowOnlyInnerProperties))
+	FVerificationEntityParams Params;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VerificationEntity", ReplicatedUsing=OnRep_EntityData, meta = (ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, Category = "VerificationEntity", ReplicatedUsing=OnRep_EntityData)
 	UVerificationEntity* EntityData;
 
 public:

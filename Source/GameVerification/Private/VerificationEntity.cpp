@@ -31,7 +31,13 @@ void UVerificationEntity::Initialise(bool doesReplicate, UWorld* WorldPtr)
 
 void UVerificationEntity::OnBeginPlay()
 {
-	m_EntityID = m_PluginInterface->EntitySpawned(m_SessionID, EntityType);
+	m_EntityID = m_PluginInterface->EntitySpawned(m_SessionID, Params.EntityType);
+
+	if (Params.SpawnBDIAgent && m_Replicates)
+	{
+		FString AgentName = Params.BDIAgentName + FString::FromInt(FMath::Rand());
+		m_PluginInterface->CreateAgent(AgentName, Params.BDIAgentName + ".asl", m_EntityID);
+	}
 }
 
 void UVerificationEntity::OnEndPlay()
@@ -90,8 +96,10 @@ void UVerificationEntity::UpdateSubentity(const FString& Name, const FVerificati
 
 void UVerificationEntity::OnRep_EntityID()
 {
-	if(m_PluginInterface)
+	if (m_PluginInterface)
+	{
 		m_PluginInterface->EntitySpawned(m_SessionID, m_EntityID);
+	}
 }
 
 void UVerificationEntity::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

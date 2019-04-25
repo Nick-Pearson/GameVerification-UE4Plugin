@@ -4,7 +4,6 @@
 #include "Paths.h"
 
 #include "verificationtypes.h"
-#include "verificationclient.h"
 #include "config.h"
 
 class FGameVerification;
@@ -34,10 +33,23 @@ public:
 };
 
 
+namespace GameVerification
+{
+	class VerificationClient;
+	class IBDIInstance;
+
+	namespace API 
+	{
+		struct Event;
+	}
+}
+
 class FGameVerification : public IGameVerification
 {
 	GameVerification::Config* config = nullptr;
 	GameVerification::VerificationClient* client = nullptr;
+
+	std::shared_ptr<GameVerification::IBDIInstance> bdiInstance;
 
 	void* DLLHandle = nullptr;
 
@@ -61,12 +73,16 @@ public:
 	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, const struct GameVerification::PropertyValue& value);
 
 	void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) override;
+	
+	void CreateAgent(const FString& AgentName, const FString& ASLFilepath, const FVerificationEntityID& linkedEntity) override;
 
 	GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) override;
 
 	void SendEvent(GameVerification::SessionID session, GameVerification::API::Event* eventPtr, size_t eventSize);
 
 	inline GameVerification::VerificationClient* GetVerificationClient() const { return client; }
+
+	void ExecuteBDIActions();
 
 private:
 
@@ -85,6 +101,12 @@ private:
 
 	GameVerification::VerificationClient* CreateClient();
 
+	FDelegateHandle BeginPIEHandle, EndPIEHandle;
+
+	void OnBeginPIE(const bool isSimulating);
+	void OnEndPIE(const bool isSimulating);
+
 	void LoadDLL();
 
+	void SetupConfigFromSettings();
 };

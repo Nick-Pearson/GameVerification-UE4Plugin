@@ -69,6 +69,8 @@ public:
 
 	virtual void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) = 0;
 
+	virtual void CreateAgent(const FString& AgentName, const FString& ASLFilepath, const FVerificationEntityID& linkedEntity) = 0;
+
 	virtual GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) = 0;
 
 	static inline IGameVerification& Get()

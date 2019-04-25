@@ -4,6 +4,13 @@
 #include "verificationclient.h"
 #include "model/verificationmodel.h"
 #include "verificationtypes.h"
+#include "driving/ibdiinstance.h"
+#include "GameVerificationSettings.h"
+
+#include "ISettingsModule.h"
+#include "ISettingsSection.h"
+
+#define LOCTEXT_NAMESPACE "GameVerification"
 
 using namespace GameVerification;
 
@@ -11,6 +18,8 @@ void FVerificationTickFunction::ExecuteTick(float DeltaTime, ELevelTick TickType
 {
 	API::Event e{ EventType::FRAME_BOUNDRY };
 	PluginPtr->SendEvent(sessionID, &e, sizeof(e));
+
+	PluginPtr->ExecuteBDIActions();
 }
 
 FString FVerificationTickFunction::DiagnosticMessage()
@@ -53,12 +62,24 @@ IMPLEMENT_MODULE(FGameVerification, GameVerification)
 void FGameVerification::StartupModule()
 {
 	LoadDLL();
+	
+#if WITH_EDITOR
+	// register settings
+	ISettingsModule& SettingsModule = FModuleManager::LoadModuleChecked<ISettingsModule>("Settings");
+
+	ISettingsSectionPtr SettingsSection = SettingsModule.RegisterSettings("Project", "Plugins", "GameVerification",
+		LOCTEXT("UMSettingsName", "Game Verification"),
+		LOCTEXT("UMSettingsDescription", "Configure the Game Verification plugin"),
+		GetMutableDefault<UGameVerificationSettings>()
+	);
+
+	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FGameVerification::OnBeginPIE);
+	EndPIEHandle = FEditorDelegates::EndPIE.AddRaw(this, &FGameVerification::OnEndPIE);
+#endif // WITH_EDITOR
 
 	config = new Config();
 
-	// this is disgusting ew ew ew
-	const FString modelPath = FPaths::ProjectSavedDir() / "Verification" / "model.ven";
-	config->modelFile = TCHAR_TO_ANSI(*modelPath);
+	SetupConfigFromSettings();
 }
 
 void FGameVerification::ShutdownModule()
@@ -66,11 +87,28 @@ void FGameVerification::ShutdownModule()
 	delete config;
 	delete client;
 
+	config = nullptr;
+	client = nullptr;
+
 	if (DLLHandle)
 	{
 		FPlatformProcess::FreeDllHandle(DLLHandle);
 	}
 	DLLHandle = nullptr;
+
+
+#if WITH_EDITOR
+	// unregister settings
+	ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+	if (SettingsModule != nullptr)
+	{
+		SettingsModule->UnregisterSettings("Project", "Plugins", "GameVerification");
+	}
+
+	FEditorDelegates::PostPIEStarted.Remove(BeginPIEHandle);
+	FEditorDelegates::EndPIE.Remove(EndPIEHandle);
+#endif
 }
 
 SessionID FGameVerification::StartVerificationSession(UGameInstance* GameInstance)
@@ -176,6 +214,15 @@ void FGameVerification::PropertyChanged(GameVerification::SessionID session, con
 	}
 
 	client->sendEvent(&e, sizeof(e));
+
+	if (!bdiInstance) return;
+
+	List<CustomString> beliefs = client->GetModel()->getRelevantBeliefs(e.entityID, e.propertyID, e.value);
+
+	for (const CustomString& bel : beliefs)
+	{
+		bdiInstance->updateBelief(bel.raw_data());
+	}
 }
 
 void FGameVerification::SubentityChanged(SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity)
@@ -192,6 +239,16 @@ void FGameVerification::SubentityChanged(SessionID session, const FVerificationE
 	}
 
 	client->sendEvent(&e, sizeof(e));
+}
+
+void FGameVerification::CreateAgent(const FString& AgentName, const FString& ASLFilepath, const FVerificationEntityID& linkedEntity)
+{
+	if (!bdiInstance) return;
+
+	bdiInstance->createAgent(TCHAR_TO_ANSI(*AgentName), TCHAR_TO_ANSI(*ASLFilepath));
+
+	if(linkedEntity.IsValid())
+		bdiInstance->linkEntity(linkedEntity.GetValue(), TCHAR_TO_ANSI(*AgentName));
 }
 
 SessionID FGameVerification::GetSessionID(const UGameInstance* GameInstance)
@@ -213,6 +270,13 @@ void FGameVerification::SendEvent(SessionID session, API::Event* eventPtr, size_
 
 	SwitchToSession(session);
 	client->sendEvent(eventPtr, eventSize);
+}
+
+void FGameVerification::ExecuteBDIActions()
+{
+	if (!bdiInstance) return;
+
+	bdiInstance->executeActions();
 }
 
 void FGameVerification::SwitchToSession(GameVerification::SessionID NewSession)
@@ -247,9 +311,25 @@ PropertyID FGameVerification::GetPropertyIDFromString(EntityType entity, const F
 
 VerificationClient* FGameVerification::CreateClient()
 {
+	SetupConfigFromSettings();
 	VerificationClient* c = new VerificationClient(config);
 	c->connect();
 	return c;
+}
+
+void FGameVerification::OnBeginPIE(const bool isSimulating)
+{
+	const UGameVerificationSettings* settings = GetDefault<UGameVerificationSettings>();
+	if (!settings || !settings->EnableBDIDuringPlay) return;
+
+	bdiInstance = GameVerification::CreateBDIInstance(TCHAR_TO_ANSI(*(FPaths::ProjectDir() / settings->ASFilePath)));
+}
+
+void FGameVerification::OnEndPIE(const bool isSimulating)
+{
+	if (!bdiInstance) return;
+
+	bdiInstance.reset();
 }
 
 void FGameVerification::LoadDLL()
@@ -271,3 +351,18 @@ void FGameVerification::LoadDLL()
 
 	check(DLLHandle);
 }
+
+void FGameVerification::SetupConfigFromSettings()
+{
+	const UGameVerificationSettings* settings = GetDefault<UGameVerificationSettings>();
+
+	if (!config || !settings) return;
+
+	config->serverHost = TCHAR_TO_ANSI(*settings->MontiorHost);
+	config->serverPort = settings->MonitorPort;
+	
+	config->modelFile = TCHAR_TO_ANSI(*(FPaths::ProjectDir() / settings->VENFilePath));
+	config->plnFile = TCHAR_TO_ANSI(*(FPaths::ProjectDir() / settings->PLNFilePath));
+}
+
+#undef LLOCTEXT_NAMESPACE

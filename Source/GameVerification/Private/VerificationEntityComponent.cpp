@@ -24,7 +24,7 @@ void UVerificationEntityComponent::OnRep_EntityData()
 {
 	if (EntityData)
 	{
-		EntityData->EntityType = EntityType;
+		EntityData->Params = Params;
 		EntityData->Initialise(bReplicates, GetWorld());
 
 		if (HasBegunPlay())
@@ -39,7 +39,7 @@ void UVerificationEntityComponent::InitializeComponent()
 	if (!bReplicates || GetOwner()->HasAuthority())
 	{
 		EntityData = NewObject<UVerificationEntity>(GetOwner());
-		EntityData->EntityType = EntityType;
+		EntityData->Params = Params;
 		EntityData->Initialise(bReplicates, GetWorld());
 	}
 }
