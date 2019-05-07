@@ -16,7 +16,7 @@ using namespace GameVerification;
 
 void FVerificationTickFunction::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 {
-	API::Event e{ EventType::FRAME_BOUNDRY };
+	API::FrameEvent e{ DeltaTime };
 	PluginPtr->SendEvent(sessionID, &e, sizeof(e));
 
 	PluginPtr->ExecuteBDIActions();
@@ -84,9 +84,6 @@ void FGameVerification::StartupModule()
 
 void FGameVerification::ShutdownModule()
 {
-	delete config;
-	delete client;
-
 	config = nullptr;
 	client = nullptr;
 
@@ -231,7 +228,49 @@ void FGameVerification::SubentityChanged(SessionID session, const FVerificationE
 
 	SwitchToSession(session);
 
-	API::SubentityEvent e{ thisEntity.GetValue(), GetPropertyIDFromString(thisEntity.EntityType, prop), otherEntity.GetValue() };
+	API::SubentityEvent e{ thisEntity.GetValue(), GetPropertyIDFromString(thisEntity.GetValue().Type, prop), otherEntity.GetValue() };
+
+	if (e.propertyID == INVALID_PROPERTY)
+	{
+		return;
+	}
+
+	client->sendEvent(&e, sizeof(e));
+}
+
+void FGameVerification::GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, bool value)
+{
+	GlobalPropertyChanged(session, prop, PropertyValue(value));
+}
+
+void FGameVerification::GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, int value)
+{
+	GlobalPropertyChanged(session, prop, PropertyValue(value));
+}
+
+void FGameVerification::GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, const struct GameVerification::PropertyValue& value)
+{
+	if (!client) return;
+
+	SwitchToSession(session);
+
+	API::PropertyChangedEvent e{ GetPropertyIDFromString((EntityType)-2, prop), value };
+
+	if (e.propertyID == INVALID_PROPERTY)
+	{
+		return;
+	}
+
+	client->sendEvent(&e, sizeof(e));
+}
+
+void FGameVerification::GlobalSubentityChanged(GameVerification::SessionID session, const FString& prop, const FVerificationEntityID& subentity)
+{
+	if (!client) return;
+
+	SwitchToSession(session);
+
+	API::SubentityEvent e{ GetPropertyIDFromString((EntityType)-2, prop), subentity.GetValue() };
 
 	if (e.propertyID == INVALID_PROPERTY)
 	{
@@ -303,7 +342,14 @@ PropertyID FGameVerification::GetPropertyIDFromString(EntityType entity, const F
 	{
 		if (!client) return INVALID_PROPERTY;
 
-		id = &entry->Entries.Add(propertyName, client->GetModel()->getPropertyID(entity, TCHAR_TO_ANSI(*propertyName)));
+		PropertyID val;
+
+		if (entity == (EntityType)-2)
+			val = client->GetModel()->getGlobalPropertyID(TCHAR_TO_ANSI(*propertyName));
+		else
+			val = client->GetModel()->getPropertyID(entity, TCHAR_TO_ANSI(*propertyName));
+	
+		id = &entry->Entries.Add(propertyName, val);
 	}
 
 	return *id;

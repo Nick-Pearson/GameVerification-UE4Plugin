@@ -73,6 +73,12 @@ public:
 	void PropertyChanged(GameVerification::SessionID session, const FVerificationEntityID& id, const FString& prop, const struct GameVerification::PropertyValue& value);
 
 	void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) override;
+
+	void GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, bool value) override;
+	void GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, int value) override;
+	void GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, const struct GameVerification::PropertyValue& value);
+
+	void GlobalSubentityChanged(GameVerification::SessionID session, const FString& prop, const FVerificationEntityID& subentity) override;
 	
 	void CreateAgent(const FString& AgentName, const FString& ASLFilepath, const FVerificationEntityID& linkedEntity) override;
 

@@ -56,6 +56,10 @@ public:
 	void UpdateProperty(const FString& Name, int Value);
 	void UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity);
 
+	FORCEINLINE void UpdateGlobalProperty(const FString& Name, bool Value) { m_PluginInterface->GlobalPropertyChanged(m_SessionID, Name, Value); }
+	FORCEINLINE void UpdateGlobalProperty(const FString& Name, int Value) { m_PluginInterface->GlobalPropertyChanged(m_SessionID, Name, Value); }
+	FORCEINLINE void UpdateGlobalSubentity(const FString& Name, const FVerificationEntityID& Subentity) { m_PluginInterface->GlobalSubentityChanged(m_SessionID, Name, Subentity); }
+
 #else
 
 	FORCE_INLINE void Initialise(bool doesReplicate, UWorld* WorldPtr) {}
@@ -66,6 +70,10 @@ public:
 	FORCE_INLINE void UpdateProperty(const FString& Name, bool Value) {}
 	FORCE_INLINE void UpdateProperty(const FString& Name, int Value) {}
 	FORCE_INLINE void UpdateSubentity(const FString& Name, const FVerificationEntityID& subentity) {}
+
+	FORCE_INLINE void UpdateGlobalProperty(const FString& Name, bool Value) {  }
+	FORCE_INLINE void UpdateGlobalProperty(const FString& Name, int Value) { }
+	FORCE_INLINE void UpdateGlobalSubentity(const FString& Name, const FVerificationEntityID& Subentity) {  }
 
 #endif
 

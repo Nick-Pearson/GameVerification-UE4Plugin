@@ -35,6 +35,10 @@ public:
 	FORCEINLINE void UpdateProperty(const FString& Name, int Value) { if (EntityData) EntityData->UpdateProperty(Name, Value); }
 	FORCEINLINE void UpdateSubentity(const FString& Name, const FVerificationEntityID& Subentity) { if (EntityData) EntityData->UpdateSubentity(Name, Subentity); }
 
+	FORCEINLINE void UpdateGlobalProperty(const FString& Name, bool Value) { if (EntityData) EntityData->UpdateGlobalProperty(Name, Value); }
+	FORCEINLINE void UpdateGlobalProperty(const FString& Name, int Value) { if (EntityData) EntityData->UpdateGlobalProperty(Name, Value); }
+	FORCEINLINE void UpdateGlobalSubentity(const FString& Name, const FVerificationEntityID& Subentity) { if (EntityData) EntityData->UpdateGlobalSubentity(Name, Subentity); }
+
 protected:
 
 	UFUNCTION()

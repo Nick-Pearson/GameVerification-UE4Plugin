@@ -69,6 +69,11 @@ public:
 
 	virtual void SubentityChanged(GameVerification::SessionID session, const FVerificationEntityID& thisEntity, const FString& prop, const FVerificationEntityID& otherEntity) = 0;
 
+	virtual void GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, bool value) = 0;
+	virtual void GlobalPropertyChanged(GameVerification::SessionID session, const FString& prop, int value) = 0;
+
+	virtual void GlobalSubentityChanged(GameVerification::SessionID session, const FString& prop, const FVerificationEntityID& subentity) = 0;
+
 	virtual void CreateAgent(const FString& AgentName, const FString& ASLFilepath, const FVerificationEntityID& linkedEntity) = 0;
 
 	virtual GameVerification::SessionID GetSessionID(const UGameInstance* GameInstance) = 0;
